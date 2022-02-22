@@ -90,6 +90,8 @@
     } else {
         [self setupPlayerViewController:config :[self getPlayerConfiguration:config]];
     }
+    
+    
 }
 
 -(void)setControls:(BOOL)controls
@@ -424,7 +426,7 @@
 -(JWPlayerConfiguration*)getPlayerConfiguration:config
 {
     JWPlayerConfigurationBuilder *configBuilder = [[JWPlayerConfigurationBuilder alloc] init];
-    
+    NSLog(@"doing configs");
     NSMutableArray <JWPlayerItem *> *playlistArray = [[NSMutableArray alloc] init];
     if (config[@"playlist"] != nil && (config[@"playlist"] != (id)[NSNull null])) {
         NSArray* playlist = config[@"playlist"];
@@ -438,7 +440,12 @@
     
     id autostart = config[@"autostart"];
     if (autostart != nil && (autostart != (id)[NSNull null])) {
-        [configBuilder autostart:autostart];
+       
+        
+        [configBuilder autostart:[autostart boolValue]];
+
+    }else{
+        [configBuilder autostart:NO];
     }
     
     id repeatContent = config[@"repeat"];
@@ -681,12 +688,17 @@
             _playerViewController.interfaceBehavior = JWInterfaceBehaviorHidden;
         }
     }
+    NSLog(@"configuring playerz");
 
     _playerViewController.playerView.delegate = self;
     _playerViewController.player.delegate = self;
     _playerViewController.player.playbackStateDelegate = self;
     _playerViewController.player.adDelegate = self;
     _playerViewController.player.avDelegate = self;
+    _playerViewController.player.metadataDelegates.mediaMetadataDelegate = self;
+    
+
+    
 }
 
 #pragma mark - JWPlayer View helpers
@@ -694,12 +706,22 @@
 -(void)setupPlayerView:config :(JWPlayerConfiguration*)playerConfig
 {
     _playerView = [[JWPlayerView new] initWithFrame:self.superview.frame];
-    
+    NSLog(@"mohammad ramadan");
     _playerView.delegate = self;
     _playerView.player.delegate = self;
     _playerView.player.playbackStateDelegate = self;
     _playerView.player.adDelegate = self;
     _playerView.player.avDelegate = self;
+    __unsafe_unretained typeof(self) weakSelf = self;
+    _playerView.player.mediaTimeObserver = ^(JWTimeData * _Nonnull time) {
+        if(weakSelf.onTime){
+            weakSelf.onTime(@{
+                @"duration":[[NSNumber  numberWithDouble:time.duration] stringValue],
+                @"position":[[NSNumber numberWithDouble:time.position] stringValue]});
+        }
+//        NSLog(@"timez %f %f",time.duration,time.position);
+    };
+//    _playerView.player.metadataDelegates.mediaMetadataDelegate = self;
     
     [_playerView.player configurePlayerWith:playerConfig];
 
@@ -749,6 +771,14 @@
         self.onPlayerError(@{@"error": message});
     }
 }
+
+//- (void)jwplayer:(id<JWPlayer>)player didReceiveMediaMetadata:(JWMediaMetadata*)metadata
+//{
+//    NSLog(@"meta data");
+//    // if (self.onPlayerError) {
+//    //     self.onPlayerError(@{@"error": message});
+//    // }
+//}
 
 - (void)jwplayer:(id<JWPlayer>)player failedWithSetupError:(NSUInteger)code message:(NSString *)message
 {
@@ -927,7 +957,7 @@
     if (_playerViewController) {
         [_playerViewController jwplayerContentIsBuffering:player];
     }
-    
+    NSLog(@"on buffer");
     if (self.onBuffer) {
         self.onBuffer(@{});
     }
@@ -938,9 +968,11 @@
     if (_playerViewController) {
         [_playerViewController jwplayer:player isBufferingWithReason:reason];
     }
-    
+    NSLog(@"on buffer");
     if (self.onBuffer) {
-        self.onBuffer(@{});
+        if(reason == JWBufferReasonStalled){
+        self.onBuffer(@{@"reason":@"stalled"});
+        }
     }
 }
 
@@ -949,7 +981,7 @@
     if (_playerViewController) {
         [_playerViewController jwplayer:player updatedBuffer:percent position:time];
     }
-    
+//    NSLog(@"data  %f", time.duration);
     if (self.onUpdateBuffer) {
         self.onUpdateBuffer(@{@"percent": @(percent), @"position": time});
     }
@@ -960,7 +992,7 @@
     if (_playerViewController) {
         [_playerViewController jwplayer:player didFinishLoadingWithTime:loadTime];
     }
-    
+    NSLog(@"on player did finish loading");
     if (self.onLoaded) {
         self.onLoaded(@{});
     }
@@ -1210,6 +1242,12 @@
     }
 }
 
+
+
+
+
+
+
 #pragma mark - JWPlayer Ad Delegate
 
 - (void)jwplayer:(id _Nonnull)player adEvent:(JWAdEvent * _Nonnull)event {
@@ -1222,26 +1260,26 @@
 
 -(void)setUpCastController
 {
-   if (_playerView != nil && _playerView.player != nil && _castController == nil) {
-       _castController = [[JWCastController alloc] initWithPlayer:_playerView.player];
-       _castController.delegate = self;
-   }
-   
-   [self scanForDevices];
+    if (_playerView != nil && _playerView.player != nil && _castController == nil) {
+        _castController = [[JWCastController alloc] initWithPlayer:_playerView.player];
+        _castController.delegate = self;
+    }
+    
+    [self scanForDevices];
 }
 
 - (void)scanForDevices
 {
-   if (_castController != nil) {
-       [_castController startDiscovery];
-   }
+    if (_castController != nil) {
+        [_castController startDiscovery];
+    }
 }
 
 - (void)stopScanForDevices
 {
-   if (_castController != nil) {
-       [_castController stopDiscovery];
-   }
+    if (_castController != nil) {
+        [_castController stopDiscovery];
+    }
 }
 
 - (void)presentCastDialog
@@ -1337,10 +1375,10 @@
 - (void)castController:(JWCastController * _Nonnull)controller connectedTo:(JWCastingDevice * _Nonnull)device {
     if (self.onConnectedToCastingDevice) {
         NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-            
+        
         [dict setObject:device.name forKey:@"name"];
         [dict setObject:device.identifier forKey:@"identifier"];
-
+        
         NSError *error;
         NSData *data = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error: &error];
         
@@ -1371,16 +1409,16 @@
     
     if (self.onCastingDevicesAvailable) {
         NSMutableArray *devicesInfo = [[NSMutableArray alloc] init];
-
+        
         for (JWCastingDevice *device in devices) {
             NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-                
+            
             [dict setObject:device.name forKey:@"name"];
             [dict setObject:device.identifier forKey:@"identifier"];
-
+            
             [devicesInfo addObject:dict];
         }
-
+        
         NSError *error;
         NSData *data = [NSJSONSerialization dataWithJSONObject:devicesInfo options:NSJSONWritingPrettyPrinted error: &error];
         
@@ -1402,29 +1440,8 @@
     }
 }
 
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player audioTrackChanged:(NSInteger)currentLevel {
-    
-}
 
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player captionPresented:(NSArray<NSString *> * _Nonnull)caption at:(JWTimeData * _Nonnull)time {
-    
-}
 
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player captionTrackChanged:(NSInteger)index {
-    
-}
-
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player qualityLevelChanged:(NSInteger)currentLevel {
-    
-}
-
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player qualityLevelsUpdated:(NSArray<JWVideoSource *> * _Nonnull)levels {
-    
-}
-
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player updatedCaptionList:(NSArray<JWMediaSelectionOption *> * _Nonnull)options {
-    
-}
 
 #pragma mark - JWPlayer audio session && interruption handling
 
@@ -1470,11 +1487,38 @@
 -(void)audioInterruptionsEnded:(NSNotification *)note {
     if (!_userPaused && _backgroundAudioEnabled) {
         if (_playerView != nil) {
+            
             [_playerView.player play];
         } else if (_playerViewController != nil) {
             [_playerViewController.player play];
         }
     }
 }
+
+- (void)jwplayer:(id<JWPlayer>)player didReceiveMediaMetadata:(JWMediaMetadata*)metadata {
+    [_playerViewController jwplayer:player didReceiveMediaMetadata:metadata];
+    NSLog(@"recived data %f",metadata.duration);
+}
+
+- (void)onMediaTimeEvent:(JWTimeData*)time {
+    
+    NSLog(@"timeerz");
+    [_playerViewController onMediaTimeEvent:time];
+}
+
+
+
+- (void)jwplayer:(id<JWPlayer> _Nonnull)player dateRangeMetadata:(JWDateRangeMetadata * _Nonnull)metadata {
+    NSLog(@"recived data22");
+}
+
+
+
+
+
+
+
+
+
 
 @end

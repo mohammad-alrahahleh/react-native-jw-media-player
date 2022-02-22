@@ -54,7 +54,7 @@ dependencies {
     // JWPlayer SDK
     implementation 'com.jwplayer:jwplayer-core:4.2.0'
     implementation 'com.jwplayer:jwplayer-common:4.2.0'
-    implementation 'com.jwplayer:jwplayer-chromecast:4.2.0'
+    // implementation 'com.jwplayer:jwplayer-chromecast:4.2.0'
     implementation 'com.jwplayer:jwplayer-ima:4.2.0'
 
     // Ad dependencies
