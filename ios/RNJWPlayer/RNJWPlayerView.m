@@ -462,7 +462,7 @@
 -(JWPlayerConfiguration*)getPlayerConfiguration:config
 {
     JWPlayerConfigurationBuilder *configBuilder = [[JWPlayerConfigurationBuilder alloc] init];
-    
+    NSLog(@"doing configs");
     NSMutableArray <JWPlayerItem *> *playlistArray = [[NSMutableArray alloc] init];
     if (config[@"playlist"] != nil && (config[@"playlist"] != (id)[NSNull null])) {
         NSArray* playlist = config[@"playlist"];
@@ -751,7 +751,7 @@
 -(void)setupPlayerView:config :(JWPlayerConfiguration*)playerConfig
 {
     _playerView = [[JWPlayerView new] initWithFrame:self.superview.frame];
-    
+    NSLog(@"mohammad ramadan");
     _playerView.delegate = self;
     _playerView.player.delegate = self;
     _playerView.player.playbackStateDelegate = self;
@@ -827,6 +827,14 @@
         self.onPlayerError(@{@"error": message});
     }
 }
+
+//- (void)jwplayer:(id<JWPlayer>)player didReceiveMediaMetadata:(JWMediaMetadata*)metadata
+//{
+//    NSLog(@"meta data");
+//    // if (self.onPlayerError) {
+//    //     self.onPlayerError(@{@"error": message});
+//    // }
+//}
 
 - (void)jwplayer:(id<JWPlayer>)player failedWithSetupError:(NSUInteger)code message:(NSString *)message
 {
@@ -1054,7 +1062,9 @@
 - (void)jwplayer:(id<JWPlayer>)player isBufferingWithReason:(enum JWBufferReason)reason
 {
     if (self.onBuffer) {
-        self.onBuffer(@{});
+        if(reason == JWBufferReasonStalled){
+        self.onBuffer(@{@"reason":@"stalled"});
+        }
     }
 }
 
@@ -1281,6 +1291,12 @@
     
 }
 
+
+
+
+
+
+
 #pragma mark - JWPlayer Ad Delegate
 
 - (void)jwplayer:(id _Nonnull)player adEvent:(JWAdEvent * _Nonnull)event {
@@ -1303,16 +1319,16 @@
 
 - (void)scanForDevices
 {
-   if (_castController != nil) {
-       [_castController startDiscovery];
-   }
+    if (_castController != nil) {
+        [_castController startDiscovery];
+    }
 }
 
 - (void)stopScanForDevices
 {
-   if (_castController != nil) {
-       [_castController stopDiscovery];
-   }
+    if (_castController != nil) {
+        [_castController stopDiscovery];
+    }
 }
 
 - (void)presentCastDialog
@@ -1408,10 +1424,10 @@
 - (void)castController:(JWCastController * _Nonnull)controller connectedTo:(JWCastingDevice * _Nonnull)device {
     if (self.onConnectedToCastingDevice) {
         NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-            
+        
         [dict setObject:device.name forKey:@"name"];
         [dict setObject:device.identifier forKey:@"identifier"];
-
+        
         NSError *error;
         NSData *data = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error: &error];
         
@@ -1442,16 +1458,16 @@
     
     if (self.onCastingDevicesAvailable) {
         NSMutableArray *devicesInfo = [[NSMutableArray alloc] init];
-
+        
         for (JWCastingDevice *device in devices) {
             NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-                
+            
             [dict setObject:device.name forKey:@"name"];
             [dict setObject:device.identifier forKey:@"identifier"];
-
+            
             [devicesInfo addObject:dict];
         }
-
+        
         NSError *error;
         NSData *data = [NSJSONSerialization dataWithJSONObject:devicesInfo options:NSJSONWritingPrettyPrinted error: &error];
         
@@ -1473,29 +1489,8 @@
     }
 }
 
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player audioTrackChanged:(NSInteger)currentLevel {
-    
-}
 
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player captionPresented:(NSArray<NSString *> * _Nonnull)caption at:(JWTimeData * _Nonnull)time {
-    
-}
 
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player captionTrackChanged:(NSInteger)index {
-    
-}
-
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player qualityLevelChanged:(NSInteger)currentLevel {
-    
-}
-
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player qualityLevelsUpdated:(NSArray<JWVideoSource *> * _Nonnull)levels {
-    
-}
-
-- (void)jwplayer:(id<JWPlayer> _Nonnull)player updatedCaptionList:(NSArray<JWMediaSelectionOption *> * _Nonnull)options {
-    
-}
 
 #pragma mark - JWPlayer audio session && interruption handling
 
