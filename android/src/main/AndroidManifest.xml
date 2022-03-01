@@ -12,15 +12,17 @@
 
     <application>
         <receiver 
+        android:name="androidx.media.session.MediaButtonReceiver"
         android:exported="true"
-        android:name="androidx.media.session.MediaButtonReceiver">
+        >
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
         <service
             android:name="com.jwplayer.pub.api.background.MediaService"
-            android:exported="false">
+             android:exported="true"
+           >
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
