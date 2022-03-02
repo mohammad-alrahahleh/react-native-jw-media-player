@@ -157,6 +157,7 @@ export default class JWPlayer extends Component {
     pause: PropTypes.func,
     toggleSpeed: PropTypes.func,
     setSpeed: PropTypes.func,
+    setVolume: PropTypes.func,
     setPlaylistIndex: PropTypes.func,
     setControls: PropTypes.func,
     setFullscreen: PropTypes.func,
@@ -216,6 +217,11 @@ export default class JWPlayer extends Component {
   setSpeed(speed) {
     if (RNJWPlayerManager)
       RNJWPlayerManager.setSpeed(this.getRNJWPlayerBridgeHandle(), speed);
+  }
+
+  setVolume(volume) {
+    if (RNJWPlayerManager)
+      RNJWPlayerManager.setVolume(this.getRNJWPlayerBridgeHandle(), volume);
   }
 
   setPlaylistIndex(index) {
