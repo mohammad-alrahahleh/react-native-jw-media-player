@@ -192,6 +192,7 @@ export default class JWPlayer extends Component {
     getCurrentAudioTrack: PropTypes.func,
     setCurrentAudioTrack: PropTypes.func,
     onAudioTracks: PropTypes.func,
+    onMediaMetaData : PropTypes.func
   };
 
   pause() {

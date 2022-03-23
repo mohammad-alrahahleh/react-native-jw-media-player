@@ -712,6 +712,7 @@
     _playerView.player.playbackStateDelegate = self;
     _playerView.player.adDelegate = self;
     _playerView.player.avDelegate = self;
+    _playerView.player.metadataDelegates.mediaMetadataDelegate = self;
     __unsafe_unretained typeof(self) weakSelf = self;
     _playerView.player.mediaTimeObserver = ^(JWTimeData * _Nonnull time) {
         if(weakSelf.onTime){
@@ -1522,7 +1523,13 @@
 
 - (void)jwplayer:(id<JWPlayer>)player didReceiveMediaMetadata:(JWMediaMetadata*)metadata {
     [_playerViewController jwplayer:player didReceiveMediaMetadata:metadata];
-    NSLog(@"recived data %f",metadata.duration);
+    if(self.onMediaMetaData){
+        NSLog(@"sending event");
+        self.onMediaMetaData(@{@"duration":[NSNumber numberWithDouble:metadata.duration] });
+    }else{
+        NSLog(@"DID NOT find event");
+    }
+    
 }
 
 - (void)onMediaTimeEvent:(JWTimeData*)time {

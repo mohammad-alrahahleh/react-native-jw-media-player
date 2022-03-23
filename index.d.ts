@@ -164,6 +164,7 @@ declare module "react-native-jw-media-player" {
     onControlBarVisible?: (event: any) => void;
     onPlaylistComplete?: (event: any) => void;
     onAudioTracks?: (event: any) => void;
+    onMediaMetaData?: (event: any) => void;
     style?: ViewStyle;
   }
 
