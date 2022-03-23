@@ -73,6 +73,7 @@ RCT_EXPORT_VIEW_PROPERTY(onConnectionFailed, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onCasting, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onCastingEnded, RCTBubblingEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onCastingFailed, RCTBubblingEventBlock);
+RCT_EXPORT_VIEW_PROPERTY(onMediaMetaData, RCTBubblingEventBlock);
 
 /* props */
 RCT_EXPORT_VIEW_PROPERTY(config, NSDictionary);

@@ -232,6 +232,7 @@ export default class JWPlayer extends Component {
     setCurrentAudioTrack: PropTypes.func,
     setCurrentCaptions: PropTypes.func,
     onAudioTracks: PropTypes.func,
+    onMediaMetaData : PropTypes.func
   };
 
   constructor(props) {
