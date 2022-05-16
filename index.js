@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-var ReactNative = require("react-native");
 import {
   requireNativeComponent,
   UIManager,
   NativeModules,
   Platform,
+  findNodeHandle,
 } from "react-native";
 import PropTypes from "prop-types";
 
@@ -13,7 +13,8 @@ const RNJWPlayerManager =
     ? NativeModules.RNJWPlayerViewManager
     : NativeModules.RNJWPlayerModule;
 
-const RCT_RNJWPLAYER_REF = "rnjwplayer";
+let playerId = 0;
+const RCT_RNJWPLAYER_REF = "RNJWPlayerKey";
 
 const RNJWPlayer = requireNativeComponent("RNJWPlayerView", null);
 
@@ -150,16 +151,21 @@ export default class JWPlayer extends Component {
       forceLandscapeOnFullScreen: PropTypes.bool,
       enableLockScreenControls: PropTypes.bool,
       stretching: PropTypes.oneOf(['uniform', 'exactFit', 'fill', 'none']),
+      processSpcUrl: PropTypes.string,
+      fairplayCertUrl: PropTypes.string,
+      contentUUID: PropTypes.string,
     }),
     onPlayerReady: PropTypes.func,
     onPlaylist: PropTypes.func,
     play: PropTypes.func,
     pause: PropTypes.func,
+    setVolume: PropTypes.func,
     toggleSpeed: PropTypes.func,
     setSpeed: PropTypes.func,
     setVolume: PropTypes.func,
     setPlaylistIndex: PropTypes.func,
     setControls: PropTypes.func,
+    setLockScreenControls: PropTypes.func,
     setFullscreen: PropTypes.func,
     setUpCastController: PropTypes.func,
     presentCastDialog: PropTypes.func,
@@ -186,14 +192,78 @@ export default class JWPlayer extends Component {
     onSeeked: PropTypes.func,
     onPlaylistItem: PropTypes.func,
     onControlBarVisible: PropTypes.func,
-    onControlBarVisible: PropTypes.func,
     onPlaylistComplete: PropTypes.func,
     getAudioTracks: PropTypes.func,
     getCurrentAudioTrack: PropTypes.func,
     setCurrentAudioTrack: PropTypes.func,
+    setCurrentCaptions: PropTypes.func,
     onAudioTracks: PropTypes.func,
     onMediaMetaData : PropTypes.func
   };
+
+  constructor(props) {
+    super(props);
+
+    this._playerId = playerId++;
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    var {config, controls} = nextProps;
+    var {
+      file,
+      image,
+      desc,
+      title,
+      mediaId,
+      autostart,
+      controls,
+      repeat,
+      mute,
+      styling,
+      nextUpDisplay,
+      playlistItem,
+      playlist,
+      style,
+      stretching,
+    } = config || {};
+    var {displayTitle, displayDescription} = styling || {}
+
+    var thisConfig = this.props.config || {};
+
+    if (
+      file !== thisConfig.file ||
+      image !== thisConfig.image ||
+      desc !== thisConfig.desc ||
+      title !== thisConfig.title ||
+      mediaId !== thisConfig.mediaId ||
+      autostart !== thisConfig.autostart ||
+      controls !== thisConfig.controls ||
+      repeat !== thisConfig.repeat ||
+      displayTitle !== thisConfig.displayTitle ||
+      displayDescription !== thisConfig.displayDescription ||
+      nextUpDisplay !== thisConfig.nextUpDisplay ||
+      style !== thisConfig.style ||
+      stretching !== thisConfig.stretching
+    ) {
+      return true;
+    }
+
+    if (playlist && thisConfig.playlist) {
+      return !this.arraysAreEqual(playlist, thisConfig.playlist);
+    } else if (!playlist && thisConfig.playlist) {
+      return true
+    }
+
+    if (controls !== this.props.controls) {
+      return true;
+    }
+
+    return false;
+  }
+
+  arraysAreEqual(ary1, ary2) {
+    return ary1?.join("") == ary2?.join("");
+  }
 
   pause() {
     if (RNJWPlayerManager)
@@ -238,6 +308,11 @@ export default class JWPlayer extends Component {
       RNJWPlayerManager.setControls(this.getRNJWPlayerBridgeHandle(), show);
   }
 
+  setLockScreenControls(show) {
+    if (RNJWPlayerManager && Platform.OS === "ios")
+      RNJWPlayerManager.setLockScreenControls(this.getRNJWPlayerBridgeHandle(), show);
+  }
+
   seekTo(time) {
     if (RNJWPlayerManager)
       RNJWPlayerManager.seekTo(this.getRNJWPlayerBridgeHandle(), time);
@@ -249,6 +324,12 @@ export default class JWPlayer extends Component {
         this.getRNJWPlayerBridgeHandle(),
         fullscreen
       );
+  }
+
+  setVolume(value) {
+    if (RNJWPlayerManager) {
+      RNJWPlayerManager.setVolume(this.getRNJWPlayerBridgeHandle(), value);
+    }
   }
 
   async time() {
@@ -392,73 +473,25 @@ export default class JWPlayer extends Component {
     }
   }
 
+  setCurrentCaptions(index) {
+    if (RNJWPlayerManager) {
+      RNJWPlayerManager.setCurrentCaptions(
+        this.getRNJWPlayerBridgeHandle(),
+        index
+      );
+    }
+  }
+
   getRNJWPlayerBridgeHandle() {
-    return ReactNative.findNodeHandle(this.refs[RCT_RNJWPLAYER_REF]);
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    var {config, controls} = nextProps;
-    var {
-      file,
-      image,
-      desc,
-      title,
-      mediaId,
-      autostart,
-      controls,
-      repeat,
-      mute,
-      styling,
-      nextUpDisplay,
-      playlistItem,
-      playlist,
-      style,
-      stretching,
-    } = config || {};
-    var {displayTitle, displayDescription} = styling || {}
-
-    var thisConfig = this.props.config || {};
-
-    if (
-      file !== thisConfig.file ||
-      image !== thisConfig.image ||
-      desc !== thisConfig.desc ||
-      title !== thisConfig.title ||
-      mediaId !== thisConfig.mediaId ||
-      autostart !== thisConfig.autostart ||
-      controls !== thisConfig.controls ||
-      repeat !== thisConfig.repeat ||
-      displayTitle !== thisConfig.displayTitle ||
-      displayDescription !== thisConfig.displayDescription ||
-      nextUpDisplay !== thisConfig.nextUpDisplay ||
-      style !== thisConfig.style ||
-      stretching !== thisConfig.stretching
-    ) {
-      return true;
-    }
-
-    if (playlist && thisConfig.playlist) {
-      return !this.arraysAreEqual(playlist, thisConfig.playlist);
-    } else if (!playlist && thisConfig.playlist) {
-      return true
-    }
-
-    if (controls !== this.props.controls) {
-      return true;
-    }
-
-    return false;
-  }
-
-  arraysAreEqual(ary1, ary2) {
-    return ary1?.join("") == ary2?.join("");
+    return findNodeHandle(this.refs[`${RCT_RNJWPLAYER_REF}-${this._playerId}`]);
   }
 
   render() {
+    const ref_key = `${RCT_RNJWPLAYER_REF}-${this._playerId}`;
     return (
       <RNJWPlayer
-        ref={RCT_RNJWPLAYER_REF}
-        key="RNJWPlayerKey"
+        ref={ref_key}
+        key={ref_key}
         {...this.props}
       />
     );
