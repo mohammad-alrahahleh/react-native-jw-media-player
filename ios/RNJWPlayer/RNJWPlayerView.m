@@ -25,10 +25,13 @@
 {
     @try {
         [[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
+        [[NSNotificationCenter defaultCenter] removeObserver:AVAudioSessionInterruptionNotification];
     } @catch(id anException) {
        
     }
-    
+}
+
+- (void)removeFromSuperview {
     [self reset];
     [super removeFromSuperview];
 }
@@ -99,19 +102,14 @@
 
 #pragma mark - RNJWPlayer props
 
--(void)setLicense:(id)license
+-(void)setConfig:(NSDictionary*)config
 {
+    id license = config[@"license"];
     if ((license != nil) && (license != (id)[NSNull null])) {
         [JWPlayerKitLicense setLicenseKey:license];
     } else {
         NSLog(@"JW SDK License key not set.");
     }
-}
-
--(void)setConfig:(NSDictionary*)config
-{
-    id license = config[@"license"];
-    [self setLicense:license];
     
     _backgroundAudioEnabled = [config[@"backgroundAudioEnabled"] boolValue];
     _pipEnabled = [config[@"pipEnabled"] boolValue];
@@ -129,10 +127,8 @@
     } else {
         [self setupPlayerViewController:config :[self getPlayerConfiguration:config]];
     }
-
-    _processSpcUrl = config[@"processSpcUrl"];
-    _fairplayCertUrl = config[@"fairplayCertUrl"];
-    _contentUUID = config[@"contentUUID"];
+    
+    
 }
 
 -(void)setControls:(BOOL)controls
@@ -408,12 +404,13 @@
                 NSURL *fileUrl = [NSURL URLWithString:file];
                 NSString *label = [item objectForKey:@"label"];
                 
+                JWMediaTrack *trackItem = [JWMediaTrack init];
                 JWCaptionTrackBuilder* trackBuilder = [[JWCaptionTrackBuilder alloc] init];
                 
                 [trackBuilder file:fileUrl];
                 [trackBuilder label:label];
                 
-                JWMediaTrack *trackItem = [trackBuilder buildAndReturnError:&error];
+                trackItem = [trackBuilder buildAndReturnError:&error];
                 
                 [tracksArray addObject:trackItem];
             }
@@ -433,13 +430,14 @@
                 NSString *tag = [item objectForKey:@"tag"];
                 NSURL* tagUrl = [NSURL URLWithString:tag];
                 
+                JWAdBreak *adBreak = [JWAdBreak init];
                 JWAdBreakBuilder* adBreakBuilder = [[JWAdBreakBuilder alloc] init];
                 JWAdOffset* offset = [JWAdOffset fromString:offsetString];
                 
                 [adBreakBuilder offset:offset];
                 [adBreakBuilder tags:@[tagUrl]];
                 
-                JWAdBreak *adBreak = [adBreakBuilder buildAndReturnError:&error];
+                adBreak = [adBreakBuilder buildAndReturnError:&error];
                 
                 [adsArray addObject:adBreak];
             }
@@ -583,13 +581,14 @@
                     NSString *tag = [item objectForKey:@"tag"];
                     NSURL* tagUrl = [NSURL URLWithString:tag];
                     
+                    JWAdBreak *adBreak = [JWAdBreak init];
                     JWAdBreakBuilder* adBreakBuilder = [[JWAdBreakBuilder alloc] init];
                     JWAdOffset* offset = [JWAdOffset fromString:offsetString];
                     
                     [adBreakBuilder offset:offset];
                     [adBreakBuilder tags:@[tagUrl]];
                     
-                    JWAdBreak *adBreak = [adBreakBuilder buildAndReturnError:&error];
+                    adBreak = [adBreakBuilder buildAndReturnError:&error];
                     
                     [scheduleArray addObject:adBreak];
                 }
@@ -632,8 +631,8 @@
 {
     [self dismissPlayerViewController];
     
-    _playerViewController = [RNJWPlayerViewController new];
-    _playerViewController.parentView = self;
+    _playerViewController = [JWPlayerViewController new];
+    _playerViewController.delegate = self;
     
     id interfaceBehavior = config[@"interfaceBehavior"];
     if ((interfaceBehavior != nil) && (interfaceBehavior != (id)[NSNull null])) {
@@ -651,13 +650,8 @@
     }
     
     id enableLockScreenControls = config[@"enableLockScreenControls"];
-    if ((enableLockScreenControls != nil && enableLockScreenControls != (id)[NSNull null]) || _backgroundAudioEnabled) {
-        _playerViewController.enableLockScreenControls = YES;
-    }
-    
-    id allowsPictureInPicturePlayback = config[@"allowsPictureInPicturePlayback"];
-    if ((allowsPictureInPicturePlayback != nil && allowsPictureInPicturePlayback != (id)[NSNull null])) {
-        _playerViewController.allowsPictureInPicturePlayback = allowsPictureInPicturePlayback;
+    if (enableLockScreenControls != nil && enableLockScreenControls != (id)[NSNull null]) {
+        _playerViewController.enableLockScreenControls = enableLockScreenControls;
     }
     
     id styling = config[@"styling"];
@@ -717,7 +711,6 @@
         
         [_playerViewController.view removeFromSuperview];
         [_playerViewController removeFromParentViewController];
-        [_playerViewController willMoveToParentViewController:nil];
         _playerViewController = nil;
     }
 }
@@ -792,8 +785,7 @@
 
 -(void)removePlayerView
 {
-    if (_playerView) {
-        [_playerView.player stop];
+    if (_playerView != nil) {
         [_playerView removeFromSuperview];
         _playerView = nil;
     }
@@ -1007,16 +999,8 @@
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
 {
-    if (_playerView || _playerViewController) {
-        if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {
-            if (_playerView) {
-                [_playerView.player play];
-            } else if (_playerViewController) {
-                [_playerViewController.player play];
-            }
-        } else if (_playerView && [object isEqual:_playerView.pictureInPictureController] && [keyPath isEqualToString:@"isPictureInPicturePossible"]) {
-            
-        }
+    if (_playerView != nil && [object isEqual:_playerView.pictureInPictureController] && [keyPath isEqualToString:@"isPictureInPicturePossible"]) {
+        
     }
 }
 
@@ -1194,8 +1178,6 @@
         
         self.onPlaylistItem(@{@"playlistItem": [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding], @"index": [NSNumber numberWithInteger:index]});
     }
-    
-    [item addObserver:self forKeyPath:@"playbackLikelyToKeepUp" options:NSKeyValueObservingOptionNew context:nil];
 }
 
 - (void)jwplayer:(id<JWPlayer>)player didLoadPlaylist:(NSArray<JWPlayerItem *> *)playlist
@@ -1309,12 +1291,12 @@
 
 -(void)setUpCastController
 {
-   if (_playerView && _playerView.player && !_castController) {
-       _castController = [[JWCastController alloc] initWithPlayer:_playerView.player];
-       _castController.delegate = self;
-   }
-   
-   [self scanForDevices];
+    if (_playerView != nil && _playerView.player != nil && _castController == nil) {
+        _castController = [[JWCastController alloc] initWithPlayer:_playerView.player];
+        _castController.delegate = self;
+    }
+    
+    [self scanForDevices];
 }
 
 - (void)scanForDevices
@@ -1534,17 +1516,12 @@
 
 -(void)setObservers
 {
-    _audioSession = [AVAudioSession sharedInstance];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(handleMediaServicesReset)
-                                                 name:AVAudioSessionMediaServicesWereResetNotification
-                                               object:_audioSession];
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     
     [[NSNotificationCenter defaultCenter] addObserver: self
                                              selector: @selector(audioSessionInterrupted:)
                                                  name: AVAudioSessionInterruptionNotification
-                                               object: _audioSession];
+                                               object: audioSession];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(applicationWillResignActive:)

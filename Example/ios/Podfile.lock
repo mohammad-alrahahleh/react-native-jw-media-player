@@ -73,10 +73,12 @@ PODS:
     - FlipperKit/FlipperKitNetworkPlugin
   - fmt (6.2.1)
   - glog (0.3.5)
-  - google-cast-sdk (4.7.0):
-    - google-cast-sdk/Core (= 4.7.0)
+  - google-cast-sdk (4.5.3):
+    - google-cast-sdk/Core (= 4.5.3)
+    - GTMSessionFetcher/Core (~> 1.1)
     - Protobuf (~> 3.13)
-  - google-cast-sdk/Core (4.7.0):
+  - google-cast-sdk/Core (4.5.3):
+    - GTMSessionFetcher/Core (~> 1.1)
     - Protobuf (~> 3.13)
   - JWPlayerKit (4.6.2)
   - libevent (2.1.12)
@@ -464,6 +466,7 @@ SPEC REPOS:
     - FlipperKit
     - fmt
     - google-cast-sdk
+    - GTMSessionFetcher
     - JWPlayerKit
     - libevent
     - OpenSSL-Universal
@@ -615,4 +618,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 72302fbb90a843c0cefdfb43fe4bd7e42dee995b
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.10.1
