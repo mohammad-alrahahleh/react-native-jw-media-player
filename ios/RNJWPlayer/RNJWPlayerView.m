@@ -17,45 +17,23 @@
     return self;
 }
 
-- (void)removeFromSuperview {
+- (void)dealloc
+{
     @try {
         [[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
+        [[NSNotificationCenter defaultCenter] removeObserver:AVAudioSessionInterruptionNotification];
     } @catch(id anException) {
        
     }
-    
+}
+
+- (void)removeFromSuperview {
     [self reset];
     [super removeFromSuperview];
 }
 
 -(void)reset
 {
-    @try {
-        //[[NSNotificationCenter defaultCenter] removeObserver:self];
-        
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionMediaServicesWereResetNotification object:_audioSession];
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionInterruptionNotification object:_audioSession];
-        
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillResignActiveNotification object:nil];
-        [[NSNotificationCenter defaultCenter] removeObserver:self name:UIApplicationWillEnterForegroundNotification object:nil];
-        
-        if (_playerViewController || _playerView) {
-            if (_playerViewController) {
-                [[_playerViewController.player currentItem] removeObserver:self forKeyPath:@"playbackLikelyToKeepUp" context:nil];
-            } else if (_playerView) {
-                [[_playerView.player currentItem] removeObserver:self forKeyPath:@"playbackLikelyToKeepUp" context:nil];
-                
-                [[NSNotificationCenter defaultCenter] removeObserver:self forKeyPath:@"isPictureInPicturePossible" context:NULL];
-            }
-        }
-    } @catch(id anException) {
-       
-    }
-    
-    NSError *activationError = nil;
-    BOOL success = [_audioSession setActive:NO error:&activationError];
-    _audioSession = nil;
-    
     [self removePlayerView];
     [self dismissPlayerViewController];
 }
@@ -91,19 +69,14 @@
 
 #pragma mark - RNJWPlayer props
 
--(void)setLicense:(id)license
+-(void)setConfig:(NSDictionary*)config
 {
+    id license = config[@"license"];
     if ((license != nil) && (license != (id)[NSNull null])) {
         [JWPlayerKitLicense setLicenseKey:license];
     } else {
         NSLog(@"JW SDK License key not set.");
     }
-}
-
--(void)setConfig:(NSDictionary*)config
-{
-    id license = config[@"license"];
-    [self setLicense:license];
     
     _backgroundAudioEnabled = config[@"backgroundAudioEnabled"];
     _pipEnabled = config[@"pipEnabled"];
@@ -117,10 +90,8 @@
     } else {
         [self setupPlayerViewController:config :[self getPlayerConfiguration:config]];
     }
-
-    _processSpcUrl = config[@"processSpcUrl"];
-    _fairplayCertUrl = config[@"fairplayCertUrl"];
-    _contentUUID = config[@"contentUUID"];
+    
+    
 }
 
 -(void)setControls:(BOOL)controls
@@ -399,12 +370,13 @@
                 NSURL *fileUrl = [NSURL URLWithString:file];
                 NSString *label = [item objectForKey:@"label"];
                 
+                JWMediaTrack *trackItem = [JWMediaTrack init];
                 JWCaptionTrackBuilder* trackBuilder = [[JWCaptionTrackBuilder alloc] init];
                 
                 [trackBuilder file:fileUrl];
                 [trackBuilder label:label];
                 
-                JWMediaTrack *trackItem = [trackBuilder buildAndReturnError:&error];
+                trackItem = [trackBuilder buildAndReturnError:&error];
                 
                 [tracksArray addObject:trackItem];
             }
@@ -424,13 +396,14 @@
                 NSString *tag = [item objectForKey:@"tag"];
                 NSURL* tagUrl = [NSURL URLWithString:tag];
                 
+                JWAdBreak *adBreak = [JWAdBreak init];
                 JWAdBreakBuilder* adBreakBuilder = [[JWAdBreakBuilder alloc] init];
                 JWAdOffset* offset = [JWAdOffset fromString:offsetString];
                 
                 [adBreakBuilder offset:offset];
                 [adBreakBuilder tags:@[tagUrl]];
                 
-                JWAdBreak *adBreak = [adBreakBuilder buildAndReturnError:&error];
+                adBreak = [adBreakBuilder buildAndReturnError:&error];
                 
                 [adsArray addObject:adBreak];
             }
@@ -577,13 +550,14 @@
                     NSString *tag = [item objectForKey:@"tag"];
                     NSURL* tagUrl = [NSURL URLWithString:tag];
                     
+                    JWAdBreak *adBreak = [JWAdBreak init];
                     JWAdBreakBuilder* adBreakBuilder = [[JWAdBreakBuilder alloc] init];
                     JWAdOffset* offset = [JWAdOffset fromString:offsetString];
                     
                     [adBreakBuilder offset:offset];
                     [adBreakBuilder tags:@[tagUrl]];
                     
-                    JWAdBreak *adBreak = [adBreakBuilder buildAndReturnError:&error];
+                    adBreak = [adBreakBuilder buildAndReturnError:&error];
                     
                     [scheduleArray addObject:adBreak];
                 }
@@ -626,8 +600,8 @@
 {
     [self dismissPlayerViewController];
     
-    _playerViewController = [RNJWPlayerViewController new];
-    _playerViewController.parentView = self;
+    _playerViewController = [JWPlayerViewController new];
+    _playerViewController.delegate = self;
     
     id interfaceBehavior = config[@"interfaceBehavior"];
     if ((interfaceBehavior != nil) && (interfaceBehavior != (id)[NSNull null])) {
@@ -645,13 +619,8 @@
     }
     
     id enableLockScreenControls = config[@"enableLockScreenControls"];
-    if ((enableLockScreenControls != nil && enableLockScreenControls != (id)[NSNull null]) || _backgroundAudioEnabled) {
-        _playerViewController.enableLockScreenControls = YES;
-    }
-    
-    id allowsPictureInPicturePlayback = config[@"allowsPictureInPicturePlayback"];
-    if ((allowsPictureInPicturePlayback != nil && allowsPictureInPicturePlayback != (id)[NSNull null])) {
-        _playerViewController.allowsPictureInPicturePlayback = allowsPictureInPicturePlayback;
+    if (enableLockScreenControls != nil && enableLockScreenControls != (id)[NSNull null]) {
+        _playerViewController.enableLockScreenControls = enableLockScreenControls;
     }
     
     id styling = config[@"styling"];
@@ -695,12 +664,10 @@
 
 -(void)dismissPlayerViewController
 {
-    if (_playerViewController) {
-        [_playerViewController.player pause]; // hack for stop not always stopping on unmount
-        [_playerViewController.player stop];
+    if (_playerViewController != nil) {
+        [_playerViewController willMoveToParentViewController:nil];
         [_playerViewController.view removeFromSuperview];
         [_playerViewController removeFromParentViewController];
-        [_playerViewController willMoveToParentViewController:nil];
         _playerViewController = nil;
     }
 }
@@ -732,8 +699,6 @@
     
 
     
-    
-    [_playerViewController setDelegates];
 }
 
 #pragma mark - JWPlayer View helpers
@@ -747,7 +712,6 @@
     _playerView.player.playbackStateDelegate = self;
     _playerView.player.adDelegate = self;
     _playerView.player.avDelegate = self;
-    _playerView.player.contentKeyDataSource = self;
     _playerView.player.metadataDelegates.mediaMetadataDelegate = self;
     __unsafe_unretained typeof(self) weakSelf = self;
     _playerView.player.mediaTimeObserver = ^(JWTimeData * _Nonnull time) {
@@ -759,7 +723,6 @@
 //        NSLog(@"timez %f %f",time.duration,time.position);
     };
 //    _playerView.player.metadataDelegates.mediaMetadataDelegate = self;
-   
     
     [_playerView.player configurePlayerWith:playerConfig];
 
@@ -775,8 +738,7 @@
 
 -(void)removePlayerView
 {
-    if (_playerView) {
-        [_playerView.player stop];
+    if (_playerView != nil) {
         [_playerView removeFromSuperview];
         _playerView = nil;
     }
@@ -950,50 +912,12 @@
     
 }
 
-#pragma mark - DRM Delegate
-
-- (void)contentIdentifierForURL:(NSURL * _Nonnull)url completionHandler:(void (^ _Nonnull)(NSData * _Nullable))handler {
-    NSData *uuidData = [_contentUUID dataUsingEncoding:NSUTF8StringEncoding];
-    handler(uuidData);
-}
-
-- (void)appIdentifierForURL:(NSURL * _Nonnull)url completionHandler:(void (^ _Nonnull)(NSData * _Nullable))handler {
-    NSURL *certURL = [NSURL URLWithString:_fairplayCertUrl];
-    NSData *certData = [NSData dataWithContentsOfURL:certURL];
-    handler(certData);
-}
-
-- (void)contentKeyWithSPCData:(NSData * _Nonnull)spcData completionHandler:(void (^ _Nonnull)(NSData * _Nullable, NSDate * _Nullable, NSString * _Nullable))handler {
-    NSMutableURLRequest *ckcRequest = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:_processSpcUrl]];
-    [ckcRequest setHTTPMethod:@"POST"];
-    [ckcRequest setHTTPBody:spcData];
-    [ckcRequest addValue:@"application/octet-stream" forHTTPHeaderField:@"Content-Type"];
-
-    [[[NSURLSession sharedSession] dataTaskWithRequest:ckcRequest completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-        if (error != nil || (httpResponse != nil && httpResponse.statusCode != 200)) {
-            handler(nil, nil, nil);
-            return;
-        }
-
-        handler(data, nil, nil);
-    }] resume];
-}
-
 #pragma mark - AV Picture In Picture Delegate
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *, id> *)change context:(void *)context
 {
-    if (_playerView || _playerViewController) {
-        if ([keyPath isEqualToString:@"playbackLikelyToKeepUp"]) {
-            if (_playerView) {
-                [_playerView.player play];
-            } else if (_playerViewController) {
-                [_playerViewController.player play];
-            }
-        } else if (_playerView && [object isEqual:_playerView.pictureInPictureController] && [keyPath isEqualToString:@"isPictureInPicturePossible"]) {
-            
-        }
+    if (_playerView != nil && [object isEqual:_playerView.pictureInPictureController] && [keyPath isEqualToString:@"isPictureInPicturePossible"]) {
+        
     }
 }
 
@@ -1216,8 +1140,6 @@
         
         self.onPlaylistItem(@{@"playlistItem": [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding], @"index": [NSNumber numberWithInteger:index]});
     }
-    
-    [item addObserver:self forKeyPath:@"playbackLikelyToKeepUp" options:NSKeyValueObservingOptionNew context:nil];
 }
 
 - (void)jwplayer:(id<JWPlayer>)player didLoadPlaylist:(NSArray<JWPlayerItem *> *)playlist
@@ -1321,12 +1243,11 @@
     }
 }
 
-- (void)jwplayer:(id<JWPlayer>)player updatedCues:(NSArray<JWCue *> * _Nonnull)cues
-{
-    if (_playerViewController) {
-        [_playerViewController jwplayer:player updatedCues:cues];
-    }
-}
+
+
+
+
+
 
 #pragma mark - JWPlayer Ad Delegate
 
@@ -1340,12 +1261,12 @@
 
 -(void)setUpCastController
 {
-   if (_playerView && _playerView.player && !_castController) {
-       _castController = [[JWCastController alloc] initWithPlayer:_playerView.player];
-       _castController.delegate = self;
-   }
-   
-   [self scanForDevices];
+    if (_playerView != nil && _playerView.player != nil && _castController == nil) {
+        _castController = [[JWCastController alloc] initWithPlayer:_playerView.player];
+        _castController.delegate = self;
+    }
+    
+    [self scanForDevices];
 }
 
 - (void)scanForDevices
@@ -1552,93 +1473,49 @@
 
 - (void)initializeAudioSession
 {
-    _audioSession = [AVAudioSession sharedInstance];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(handleMediaServicesReset)
-                                                 name:AVAudioSessionMediaServicesWereResetNotification
-                                               object:_audioSession];
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     
     [[NSNotificationCenter defaultCenter] addObserver: self
                                              selector: @selector(audioSessionInterrupted:)
                                                  name: AVAudioSessionInterruptionNotification
-                                               object: _audioSession];
+                                               object: audioSession];
     
-    NSError *categoryError = nil;
-    BOOL success = [_audioSession setCategory:AVAudioSessionCategoryPlayback error:&categoryError];
-    
-    NSError *modeError = nil;
-    [_audioSession setMode:AVAudioSessionModeDefault error:&modeError];
+    NSError *setCategoryError = nil;
+    BOOL success = [audioSession setCategory:AVAudioSessionCategoryPlayback error:&setCategoryError];
     
     NSError *activationError = nil;
-    success = [_audioSession setActive:YES error:&activationError];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationWillResignActive:)
-                                                     name:UIApplicationWillResignActiveNotification object:nil];
-
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationWillEnterForeground:)
-                                                     name:UIApplicationWillEnterForegroundNotification object:nil];
+    success = [audioSession setActive:YES error:&activationError];
 }
-
-// Interupted
 
 -(void)audioSessionInterrupted:(NSNotification*)note
 {
-    NSNumber *interruptionType = [[note userInfo] objectForKey:AVAudioSessionInterruptionTypeKey];
-    NSNumber *interruptionOption = [[note userInfo] objectForKey:AVAudioSessionInterruptionOptionKey];
-
-    switch (interruptionType.unsignedIntegerValue) {
-        case AVAudioSessionInterruptionTypeBegan: {
-            _wasInterrupted = YES;
-            
-            if (_playerView) {
-                [_playerView.player pause];
-            } else if (_playerViewController) {
-                [_playerViewController.player pause];
-            }
-        } break;
-        case AVAudioSessionInterruptionTypeEnded: {
-            if (interruptionOption.unsignedIntegerValue == AVAudioSessionInterruptionOptionShouldResume || (!_userPaused && _backgroundAudioEnabled)) {
-                if (_playerView) {
-                    [self->_playerView.player play];
-                } else if (_playerViewController) {
-                    [self->_playerViewController.player play];
-                }
-            }
-        } break;
-        default:
-            break;
-    }
-}
-
-// Service reset
-
--(void)handleMediaServicesReset
-{
-    // • Handle this notification by fully reconfiguring audio
-}
-
-// Inactive
-// Hack for ios 14 stopping audio when going to background
--(void)applicationWillResignActive:(NSNotification *)notification {
-    if (!_userPaused && _backgroundAudioEnabled) {
-        if (_playerView) {
-            [_playerView.player play];
-        } else if (_playerViewController) {
-            [_playerViewController.player play];
+    if ([note.name isEqualToString:AVAudioSessionInterruptionNotification]) {
+        NSLog(@"Interruption notification");
+        
+        if ([[note.userInfo valueForKey:AVAudioSessionInterruptionTypeKey] isEqualToNumber:[NSNumber numberWithInt:AVAudioSessionInterruptionTypeBegan]]) {
+            [self audioInterruptionsStarted:note];
+        } else {
+            [self audioInterruptionsEnded:note];
         }
     }
 }
 
-// Active
+-(void)audioInterruptionsStarted:(NSNotification *)note {
+    _wasInterrupted = YES;
+    
+    if (_playerView != nil) {
+        [_playerView.player pause];
+    } else if (_playerViewController != nil) {
+        [_playerViewController.player pause];
+    }
+}
 
--(void)applicationWillEnterForeground:(NSNotification *)notification{
+-(void)audioInterruptionsEnded:(NSNotification *)note {
     if (!_userPaused && _backgroundAudioEnabled) {
-        if (_playerView) {
+        if (_playerView != nil) {
+            
             [_playerView.player play];
-        } else if (_playerViewController) {
+        } else if (_playerViewController != nil) {
             [_playerViewController.player play];
         }
     }

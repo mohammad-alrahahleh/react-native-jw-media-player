@@ -181,16 +181,11 @@ public class RNJWPlayerView extends RelativeLayout implements
     private MediaServiceController mMediaServiceController;
 
     private void doBindService() {
-        if (mMediaServiceController != null) {
-            mMediaServiceController.bindService();
-        }
+        // mMediaServiceController.bindService();
     }
 
     private void doUnbindService() {
-        if (mMediaServiceController != null) {
-            mMediaServiceController.unbindService();
-            mMediaServiceController = null;
-        }
+        // mMediaServiceController.unbindService();
     }
 
     private static boolean contextHasBug(Context context) {
@@ -541,7 +536,7 @@ public class RNJWPlayerView extends RelativeLayout implements
 
     public void setConfig(ReadableMap prop) {
         if (prop.hasKey("license")) {
-            new LicenseUtil().setLicenseKey(getReactContext(), prop.getString("license"));
+            LicenseUtil.setLicenseKey(getReactContext(), prop.getString("license"));
         } else {
             Log.e(TAG, "JW SDK license not set");
         }
@@ -714,10 +709,6 @@ public class RNJWPlayerView extends RelativeLayout implements
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT));
         addView(mPlayerView);
-
-        if (prop.hasKey("controls")) { // Hack for controls hiding not working right away
-            mPlayerView.getPlayer().setControls(prop.getBoolean("controls"));
-        }
 
         if (prop.hasKey("fullScreenOnLandscape")) {
             fullScreenOnLandscape = prop.getBoolean("fullScreenOnLandscape");

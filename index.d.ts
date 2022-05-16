@@ -121,7 +121,7 @@ declare module "react-native-jw-media-player" {
     | 'audiotracks_submenu'
     | 'casting_menu';
   interface Config {
-    license: string;
+    license: string,
     advertising?: Advertising;
     autostart?: boolean;
     controls?: boolean;
@@ -139,10 +139,6 @@ declare module "react-native-jw-media-player" {
     preload?: Preloads;
     interfaceBehavior?: InterfaceBehaviors;
     hideUIGroup?: UIGroups;
-    processSpcUrl?: string;
-    fairplayCertUrl?: string;
-    contentUUID?: string;
-    viewOnly: boolean;
   }
   interface PropsType {
     config: Config;
@@ -178,10 +174,8 @@ declare module "react-native-jw-media-player" {
     stop(): void;
     toggleSpeed(): void;
     setSpeed(speed: number): void;
-    setVolume(volume: number): void;
     setPlaylistIndex(index: number): void;
     setControls(show: boolean): void;
-    setLockScreenControls(show: boolean): void;
     loadPlaylist(playlist: PlaylistItem[]): void;
     loadPlaylistItem(playlistItem: PlaylistItem): void;
     seekTo(time: number): void;
