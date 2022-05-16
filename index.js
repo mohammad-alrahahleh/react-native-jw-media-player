@@ -1,10 +1,10 @@
 import React, { Component } from "react";
-var ReactNative = require("react-native");
 import {
   requireNativeComponent,
   UIManager,
   NativeModules,
   Platform,
+  findNodeHandle,
 } from "react-native";
 import PropTypes from "prop-types";
 import _ from 'lodash';
@@ -14,7 +14,8 @@ const RNJWPlayerManager =
     ? NativeModules.RNJWPlayerViewManager
     : NativeModules.RNJWPlayerModule;
 
-const RCT_RNJWPLAYER_REF = "rnjwplayer";
+let playerId = 0;
+const RCT_RNJWPLAYER_REF = "RNJWPlayerKey";
 
 const RNJWPlayer = requireNativeComponent("RNJWPlayerView", null);
 
@@ -194,11 +195,13 @@ export default class JWPlayer extends Component {
     onPlaylist: PropTypes.func,
     play: PropTypes.func,
     pause: PropTypes.func,
+    setVolume: PropTypes.func,
     toggleSpeed: PropTypes.func,
     setSpeed: PropTypes.func,
     setVolume: PropTypes.func,
     setPlaylistIndex: PropTypes.func,
     setControls: PropTypes.func,
+    setLockScreenControls: PropTypes.func,
     setFullscreen: PropTypes.func,
     setUpCastController: PropTypes.func,
     presentCastDialog: PropTypes.func,
@@ -223,11 +226,11 @@ export default class JWPlayer extends Component {
     onSeeked: PropTypes.func,
     onPlaylistItem: PropTypes.func,
     onControlBarVisible: PropTypes.func,
-    onControlBarVisible: PropTypes.func,
     onPlaylistComplete: PropTypes.func,
     getAudioTracks: PropTypes.func,
     getCurrentAudioTrack: PropTypes.func,
     setCurrentAudioTrack: PropTypes.func,
+    setCurrentCaptions: PropTypes.func,
     onAudioTracks: PropTypes.func,
     onMediaMetaData : PropTypes.func
   };
@@ -328,6 +331,12 @@ export default class JWPlayer extends Component {
         this.getRNJWPlayerBridgeHandle(),
         fullscreen
       );
+  }
+
+  setVolume(value) {
+    if (RNJWPlayerManager) {
+      RNJWPlayerManager.setVolume(this.getRNJWPlayerBridgeHandle(), value);
+    }
   }
 
   async time() {
@@ -465,6 +474,15 @@ export default class JWPlayer extends Component {
   setCurrentAudioTrack(index) {
     if (RNJWPlayerManager) {
       RNJWPlayerManager.setCurrentAudioTrack(
+        this.getRNJWPlayerBridgeHandle(),
+        index
+      );
+    }
+  }
+
+  setCurrentCaptions(index) {
+    if (RNJWPlayerManager) {
+      RNJWPlayerManager.setCurrentCaptions(
         this.getRNJWPlayerBridgeHandle(),
         index
       );

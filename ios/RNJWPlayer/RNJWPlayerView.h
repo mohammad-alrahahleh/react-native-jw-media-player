@@ -8,13 +8,16 @@
 #import <AVKit/AVKit.h>
 #import <JWPlayerKit/JWPlayerKit-swift.h>
 #import <GoogleCast/GoogleCast.h>
+#import "RNJWPlayerViewController.h"
 
-@interface RNJWPlayerView : UIView  <JWPlayerDelegate, JWPlayerStateDelegate, JWAdDelegate, JWCastDelegate, JWAVDelegate, JWPlayerViewDelegate, JWPlayerViewControllerDelegate,JWMediaMetadataDelegate, JWTimeEventListener  ,AVPictureInPictureControllerDelegate>
+@class RNJWPlayerViewController;
 
 @interface RNJWPlayerView : UIView  <JWPlayerDelegate, JWPlayerStateDelegate, JWAdDelegate, JWCastDelegate, JWAVDelegate, JWPlayerViewDelegate, JWPlayerViewControllerDelegate, JWDRMContentKeyDataSource, AVPictureInPictureControllerDelegate>
 
 @property(nonatomic, strong)RNJWPlayerViewController* playerViewController;
 @property(nonatomic, strong)JWPlayerView *playerView;
+
+@property(nonatomic, strong)AVAudioSession *audioSession;
 
 @property(nonatomic)BOOL pipEnabled;
 @property(nonatomic)BOOL backgroundAudioEnabled;
@@ -23,6 +26,11 @@
 @property(nonatomic)BOOL wasInterrupted;
 
 @property(nonatomic)JWInterfaceBehavior interfaceBehavior;
+
+/* DRM props */
+@property(nonatomic) NSString *fairplayCertUrl;
+@property(nonatomic) NSString *processSpcUrl;
+@property(nonatomic) NSString *contentUUID;
 
 /* casting objects */
 @property(nonatomic, strong)JWCastController *castController;
@@ -95,6 +103,7 @@
 - (NSArray <JWCastingDevice *>*)availableDevices;
 
 /* Methods */
+-(void)setLicense:(id)license;
 -(void)toggleUIGroup:(UIView*)view :(NSString*)name :(NSString*)ofSubview :(BOOL)show;
 -(void)startDeinitProcess;
 

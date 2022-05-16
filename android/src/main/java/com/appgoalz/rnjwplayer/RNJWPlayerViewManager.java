@@ -39,6 +39,11 @@ public class RNJWPlayerViewManager extends SimpleViewManager<RNJWPlayerView> {
     view.setConfig(prop);
   }
 
+  @ReactProp(name = "controls")
+  public void setControls(RNJWPlayerView view, Boolean controls) {
+    view.mPlayerView.getPlayer().setControls(controls);
+  }
+
   public Map getExportedCustomBubblingEventTypeConstants() {
     return MapBuilder.builder()
             .put(
@@ -140,8 +145,7 @@ public class RNJWPlayerViewManager extends SimpleViewManager<RNJWPlayerView> {
   @Override
   public void onDropViewInstance(@Nonnull RNJWPlayerView view) {
     view.destroyPlayer();
-    view = null;
-
     super.onDropViewInstance(view);
+    view = null;
   }
 }

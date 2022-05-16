@@ -129,7 +129,7 @@ declare module "react-native-jw-media-player" {
     | "SpokenAudio"
     | "VoicePrompt";
   interface Config {
-    license: string,
+    license: string;
     advertising?: Advertising;
     autostart?: boolean;
     controls?: boolean;
@@ -191,6 +191,7 @@ declare module "react-native-jw-media-player" {
     stop(): void;
     toggleSpeed(): void;
     setSpeed(speed: number): void;
+    setVolume(volume: number): void;
     setPlaylistIndex(index: number): void;
     setControls(show: boolean): void;
     setLockScreenControls(show: boolean): void;
