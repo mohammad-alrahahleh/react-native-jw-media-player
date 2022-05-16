@@ -757,15 +757,15 @@
     _playerView.player.avDelegate = self;
     _playerView.player.contentKeyDataSource = self;
     _playerView.player.metadataDelegates.mediaMetadataDelegate = self;
-    __unsafe_unretained typeof(self) weakSelf = self;
-    _playerView.player.mediaTimeObserver = ^(JWTimeData * _Nonnull time) {
-        if(weakSelf.onTime){
-            weakSelf.onTime(@{
-                @"duration":[[NSNumber  numberWithDouble:time.duration] stringValue],
-                @"position":[[NSNumber numberWithDouble:time.position] stringValue]});
-        }
-//        NSLog(@"timez %f %f",time.duration,time.position);
-    };
+//     __unsafe_unretained typeof(self) weakSelf = self;
+//     _playerView.player.mediaTimeObserver = ^(JWTimeData * _Nonnull time) {
+//         if(weakSelf.onTime){
+//             weakSelf.onTime(@{
+//                 @"duration":[[NSNumber  numberWithDouble:time.duration] stringValue],
+//                 @"position":[[NSNumber numberWithDouble:time.position] stringValue]});
+//         }
+// //        NSLog(@"timez %f %f",time.duration,time.position);
+//     };
 //    _playerView.player.metadataDelegates.mediaMetadataDelegate = self;
    
     
