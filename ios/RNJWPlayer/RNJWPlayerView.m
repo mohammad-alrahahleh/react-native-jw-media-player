@@ -706,14 +706,14 @@
 -(void)setupPlayerView:config :(JWPlayerConfiguration*)playerConfig
 {
     _playerView = [[JWPlayerView new] initWithFrame:self.superview.frame];
-    NSLog(@"mohammad ramadan");
+
     _playerView.delegate = self;
     _playerView.player.delegate = self;
     _playerView.player.playbackStateDelegate = self;
     _playerView.player.adDelegate = self;
     _playerView.player.avDelegate = self;
     _playerView.player.metadataDelegates.mediaMetadataDelegate = self;
-    __unsafe_unretained typeof(self) weakSelf = self;
+    __weak RNJWPlayerView *weakSelf = self;
     _playerView.player.mediaTimeObserver = ^(JWTimeData * _Nonnull time) {
         if(weakSelf.onTime){
             weakSelf.onTime(@{
