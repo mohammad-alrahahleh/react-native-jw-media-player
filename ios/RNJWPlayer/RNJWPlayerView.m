@@ -716,9 +716,7 @@
     __weak RNJWPlayerView *weakSelf = self;
     _playerView.player.mediaTimeObserver = ^(JWTimeData * _Nonnull time) {
         if(weakSelf.onTime){
-            weakSelf.onTime(@{
-                @"duration":[[NSNumber  numberWithDouble:time.duration] stringValue],
-                @"position":[[NSNumber numberWithDouble:time.position] stringValue]});
+           weakSelf.onTime(@{@"position": @(time.position), @"duration": @(time.duration)});
         }
 //        NSLog(@"timez %f %f",time.duration,time.position);
     };
