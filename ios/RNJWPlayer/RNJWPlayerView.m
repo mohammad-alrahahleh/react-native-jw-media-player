@@ -716,6 +716,15 @@
     _playerView.player.adDelegate = self;
     _playerView.player.avDelegate = self;
     _playerView.player.contentKeyDataSource = self;
+    _playerView.player.metadataDelegates.mediaMetadataDelegate = self;
+    
+    
+    __weak RNJWPlayerView *weakSelf = self;
+       _playerView.player.mediaTimeObserver = ^(JWTimeData * _Nonnull time) {
+           if(weakSelf.onTime){
+              weakSelf.onTime(@{@"position": @(time.position), @"duration": @(time.duration)});
+           }};
+    
     
     [_playerView.player configurePlayerWith:playerConfig];
 
