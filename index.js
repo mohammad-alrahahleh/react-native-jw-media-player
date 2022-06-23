@@ -150,16 +150,21 @@ export default class JWPlayer extends Component {
       forceLandscapeOnFullScreen: PropTypes.bool,
       enableLockScreenControls: PropTypes.bool,
       stretching: PropTypes.oneOf(['uniform', 'exactFit', 'fill', 'none']),
+      processSpcUrl: PropTypes.string,
+      fairplayCertUrl: PropTypes.string,
+      contentUUID: PropTypes.string,
     }),
     onPlayerReady: PropTypes.func,
     onPlaylist: PropTypes.func,
     play: PropTypes.func,
     pause: PropTypes.func,
+    setVolume: PropTypes.func,
     toggleSpeed: PropTypes.func,
     setSpeed: PropTypes.func,
     setVolume: PropTypes.func,
     setPlaylistIndex: PropTypes.func,
     setControls: PropTypes.func,
+    setLockScreenControls: PropTypes.func,
     setFullscreen: PropTypes.func,
     setUpCastController: PropTypes.func,
     presentCastDialog: PropTypes.func,
@@ -186,11 +191,11 @@ export default class JWPlayer extends Component {
     onSeeked: PropTypes.func,
     onPlaylistItem: PropTypes.func,
     onControlBarVisible: PropTypes.func,
-    onControlBarVisible: PropTypes.func,
     onPlaylistComplete: PropTypes.func,
     getAudioTracks: PropTypes.func,
     getCurrentAudioTrack: PropTypes.func,
     setCurrentAudioTrack: PropTypes.func,
+    setCurrentCaptions: PropTypes.func,
     onAudioTracks: PropTypes.func,
     onMediaMetaData : PropTypes.func
   };
@@ -238,6 +243,11 @@ export default class JWPlayer extends Component {
       RNJWPlayerManager.setControls(this.getRNJWPlayerBridgeHandle(), show);
   }
 
+  setLockScreenControls(show) {
+    if (RNJWPlayerManager && Platform.OS === "ios")
+      RNJWPlayerManager.setLockScreenControls(this.getRNJWPlayerBridgeHandle(), show);
+  }
+
   seekTo(time) {
     if (RNJWPlayerManager)
       RNJWPlayerManager.seekTo(this.getRNJWPlayerBridgeHandle(), time);
@@ -249,6 +259,12 @@ export default class JWPlayer extends Component {
         this.getRNJWPlayerBridgeHandle(),
         fullscreen
       );
+  }
+
+  setVolume(value) {
+    if (RNJWPlayerManager) {
+      RNJWPlayerManager.setVolume(this.getRNJWPlayerBridgeHandle(), value);
+    }
   }
 
   async time() {
@@ -386,6 +402,15 @@ export default class JWPlayer extends Component {
   setCurrentAudioTrack(index) {
     if (RNJWPlayerManager) {
       RNJWPlayerManager.setCurrentAudioTrack(
+        this.getRNJWPlayerBridgeHandle(),
+        index
+      );
+    }
+  }
+
+  setCurrentCaptions(index) {
+    if (RNJWPlayerManager) {
+      RNJWPlayerManager.setCurrentCaptions(
         this.getRNJWPlayerBridgeHandle(),
         index
       );

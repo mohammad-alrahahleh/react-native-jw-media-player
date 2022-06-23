@@ -8,10 +8,13 @@
 #import <AVKit/AVKit.h>
 #import <JWPlayerKit/JWPlayerKit-swift.h>
 #import <GoogleCast/GoogleCast.h>
+#import "RNJWPlayerViewController.h"
 
-@interface RNJWPlayerView : UIView  <JWPlayerDelegate, JWPlayerStateDelegate, JWAdDelegate, JWCastDelegate, JWAVDelegate, JWPlayerViewDelegate, JWPlayerViewControllerDelegate,JWMediaMetadataDelegate, JWTimeEventListener  ,AVPictureInPictureControllerDelegate>
+@class RNJWPlayerViewController;
 
-@property(nonatomic, strong)JWPlayerViewController* playerViewController;
+@interface RNJWPlayerView : UIView  <JWPlayerDelegate, JWPlayerStateDelegate, JWAdDelegate, JWCastDelegate, JWAVDelegate, JWPlayerViewDelegate, JWPlayerViewControllerDelegate, JWDRMContentKeyDataSource, AVPictureInPictureControllerDelegate,JWMediaMetadataDelegate>
+
+@property(nonatomic, strong)RNJWPlayerViewController* playerViewController;
 @property(nonatomic, strong)JWPlayerView *playerView;
 
 @property(nonatomic)BOOL pipEnabled;
@@ -21,6 +24,11 @@
 @property(nonatomic)BOOL wasInterrupted;
 
 @property(nonatomic)JWInterfaceBehavior interfaceBehavior;
+
+/* DRM props */
+@property(nonatomic) NSString *fairplayCertUrl;
+@property(nonatomic) NSString *processSpcUrl;
+@property(nonatomic) NSString *contentUUID;
 
 /* casting objects */
 @property(nonatomic, strong)JWCastController *castController;
