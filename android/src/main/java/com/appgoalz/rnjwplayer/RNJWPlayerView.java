@@ -181,11 +181,16 @@ public class RNJWPlayerView extends RelativeLayout implements
     private MediaServiceController mMediaServiceController;
 
     private void doBindService() {
-         mMediaServiceController.bindService();
+        if (mMediaServiceController != null) {
+            mMediaServiceController.bindService();
+        }
     }
 
-    private void doUnbindService() {
-         mMediaServiceController.unbindService();
+     private void doUnbindService() {
+        if (mMediaServiceController != null) {
+            mMediaServiceController.unbindService();
+            mMediaServiceController = null;
+        }
     }
 
     private static boolean contextHasBug(Context context) {
@@ -536,7 +541,7 @@ public class RNJWPlayerView extends RelativeLayout implements
 
     public void setConfig(ReadableMap prop) {
         if (prop.hasKey("license")) {
-            LicenseUtil.setLicenseKey(getReactContext(), prop.getString("license"));
+            new LicenseUtil().setLicenseKey(getReactContext(), prop.getString("license"));
         } else {
             Log.e(TAG, "JW SDK license not set");
         }
