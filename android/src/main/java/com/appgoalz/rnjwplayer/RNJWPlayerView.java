@@ -181,11 +181,11 @@ public class RNJWPlayerView extends RelativeLayout implements
     private MediaServiceController mMediaServiceController;
 
     private void doBindService() {
-        // mMediaServiceController.bindService();
+         mMediaServiceController.bindService();
     }
 
     private void doUnbindService() {
-        // mMediaServiceController.unbindService();
+         mMediaServiceController.unbindService();
     }
 
     private static boolean contextHasBug(Context context) {
@@ -774,9 +774,9 @@ public class RNJWPlayerView extends RelativeLayout implements
 
         setupPlayerView(backgroundAudioEnabled);
 
-//         if (false) {
-//            mMediaServiceController = new MediaServiceController.Builder((AppCompatActivity) mActivity, mPlayer).build();
-//         }
+
+            mMediaServiceController = new MediaServiceController.Builder((AppCompatActivity) mActivity, mPlayer).build();
+
     }
 
     private void updateWakeLock(boolean enable) {
