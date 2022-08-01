@@ -243,7 +243,7 @@ public class RNJWPlayerView extends RelativeLayout implements
     }
 
     public Activity getActivity() {
-        return (Activity) getContext();
+        return getReactContext().getCurrentActivity();
     }
 
     public void destroyPlayer() {
