@@ -16,40 +16,40 @@ import java.util.List;
 import java.util.Locale;
 
 
-public class CastOptionsProvider  {
+public class CastOptionsProvider implements OptionsProvider {
 
     /**
      * The Application Id to use, currently the Default Media Receiver.
      */
-//     private static final String DEFAULT_APPLICATION_ID = CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID;
+    private static final String DEFAULT_APPLICATION_ID = CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID;
 
-//     @Override
-//     public CastOptions getCastOptions(Context context) {
-//         final NotificationOptions notificationOptions = new NotificationOptions.Builder()
-//                 .setActions(Arrays.asList(
-//                         MediaIntentReceiver.ACTION_SKIP_NEXT,
-//                         MediaIntentReceiver.ACTION_TOGGLE_PLAYBACK,
-//                         MediaIntentReceiver.ACTION_STOP_CASTING), new int[]{1, 2})
-//                 .setTargetActivityClassName(RNJWPlayerView.class.getName())
-//                 .build();
+    @Override
+    public CastOptions getCastOptions(Context context) {
+        final NotificationOptions notificationOptions = new NotificationOptions.Builder()
+                .setActions(Arrays.asList(
+                        MediaIntentReceiver.ACTION_SKIP_NEXT,
+                        MediaIntentReceiver.ACTION_TOGGLE_PLAYBACK,
+                        MediaIntentReceiver.ACTION_STOP_CASTING), new int[]{1, 2})
+                .setTargetActivityClassName(RNJWPlayerView.class.getName())
+                .build();
 
-//         final CastMediaOptions mediaOptions = new CastMediaOptions.Builder()
-//                 .setNotificationOptions(notificationOptions)
-//                 .build();
+        final CastMediaOptions mediaOptions = new CastMediaOptions.Builder()
+                .setNotificationOptions(notificationOptions)
+                .build();
 
-//         final LaunchOptions launchOptions = new LaunchOptions.Builder()
-//                 .setLocale(Locale.US)
-//                 .build();
+        final LaunchOptions launchOptions = new LaunchOptions.Builder()
+                .setLocale(Locale.US)
+                .build();
 
-//         return new CastOptions.Builder()
-//                 .setReceiverApplicationId(DEFAULT_APPLICATION_ID)
-//                 .setCastMediaOptions(mediaOptions)
-//                 .setLaunchOptions(launchOptions)
-//                 .build();
-//     }
+        return new CastOptions.Builder()
+                .setReceiverApplicationId(DEFAULT_APPLICATION_ID)
+                .setCastMediaOptions(mediaOptions)
+                .setLaunchOptions(launchOptions)
+                .build();
+    }
 
-//     @Override
-//     public List<SessionProvider> getAdditionalSessionProviders(Context appContext) {
-//         return null;
-//     }
+    @Override
+    public List<SessionProvider> getAdditionalSessionProviders(Context appContext) {
+        return null;
+    }
 }

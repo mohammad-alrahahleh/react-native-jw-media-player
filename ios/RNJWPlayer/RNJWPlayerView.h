@@ -93,8 +93,6 @@
 @property(nonatomic, copy)RCTBubblingEventBlock onCastingEnded;
 @property(nonatomic, copy)RCTBubblingEventBlock onCastingFailed;
 
-@property(nonatomic, copy)RCTBubblingEventBlock onMediaMetaData;
-
 /* casting methods */
 - (void)setUpCastController;
 - (void)presentCastDialog;
