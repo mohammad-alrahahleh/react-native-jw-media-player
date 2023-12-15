@@ -751,7 +751,9 @@ public class RNJWPlayerView extends RelativeLayout implements
             }
 
             if (mColors.hasKey("timeslider")) {
-                CueMarkerSeekbar seekBar = findViewById(R.id.controlbar_seekbar);
+                // This line was crashing Android build on RN 0.73 upgrade
+                // CueMarkerSeekbar seekBar = findViewById(R.id.controlbar_seekbar);
+                CueMarkerSeekbar seekBar = findViewById(com.longtailvideo.jwplayer.R.id.controlbar_seekbar);
                 ReadableMap timeslider = mColors.getMap("timeslider");
                 if (timeslider != null) {
                     LayerDrawable progressDrawable = (LayerDrawable) seekBar.getProgressDrawable();
@@ -866,18 +868,6 @@ public class RNJWPlayerView extends RelativeLayout implements
                         }
                     }
                     break;
-                case AudioManager.AUDIOFOCUS_LOSS:
-                    mPlayer.pause();
-                    wasInterrupted = true;
-                    hasAudioFocus = false;
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                    mPlayer.pause();
-                    wasInterrupted = true;
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                    setVolume(initVolume / 2);
-                    break;
             }
         }
     }
@@ -901,24 +891,6 @@ public class RNJWPlayerView extends RelativeLayout implements
                                 mPlayer.play();
                             }
                         }
-                        break;
-                    case AudioManager.AUDIOFOCUS_LOSS:
-                        mPlayer.pause();
-                        synchronized(focusLock) {
-                            wasInterrupted = true;
-                            playbackDelayed = false;
-                        }
-                        hasAudioFocus = false;
-                        break;
-                    case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                        mPlayer.pause();
-                        synchronized(focusLock) {
-                            wasInterrupted = true;
-                            playbackDelayed = false;
-                        }
-                        break;
-                    case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                        setVolume(initVolume / 2);
                         break;
                 }
             } else {
