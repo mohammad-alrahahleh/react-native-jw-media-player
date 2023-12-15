@@ -751,7 +751,9 @@ public class RNJWPlayerView extends RelativeLayout implements
             }
 
             if (mColors.hasKey("timeslider")) {
-                CueMarkerSeekbar seekBar = findViewById(R.id.controlbar_seekbar);
+                // This line was crashing Android build on RN 0.73 upgrade
+                // CueMarkerSeekbar seekBar = findViewById(R.id.controlbar_seekbar);
+                CueMarkerSeekbar seekBar = findViewById(com.longtailvideo.jwplayer.R.id.controlbar_seekbar);
                 ReadableMap timeslider = mColors.getMap("timeslider");
                 if (timeslider != null) {
                     LayerDrawable progressDrawable = (LayerDrawable) seekBar.getProgressDrawable();
